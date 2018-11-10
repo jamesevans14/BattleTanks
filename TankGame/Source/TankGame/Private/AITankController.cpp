@@ -14,7 +14,7 @@ void AAITankController::BeginPlay()
 	else {
 		UE_LOG(LogTemp, Warning, TEXT("AI Controller has found player tank %s"), *PlayerTank->GetName());
 	}
-
+	tank_m = GetPossessedTank();
 }
 
 ATank* AAITankController::GetPossessedTank() const
@@ -37,8 +37,9 @@ void AAITankController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	if (PlayerTank)
-		PlayerTank->AimAt(PlayerTank->GetActorLocation());
+		tank_m->AimAt(PlayerTank->GetActorLocation());
 
 }
 
-//to get the player i would getWorld, then get player
+
+

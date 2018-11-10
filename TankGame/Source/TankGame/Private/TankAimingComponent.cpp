@@ -2,6 +2,9 @@
 
 #include "TankAimingComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "TankBarrel.h"
 #include "GameFramework/Actor.h"
 
 
@@ -16,34 +19,55 @@ UTankAimingComponent::UTankAimingComponent()
 }
 
 
-// Called when the game starts
-void UTankAimingComponent::BeginPlay()
-{
-	Super::BeginPlay();
 
-	// ...
+
+
+void UTankAimingComponent::SetBarrelReference(UTankBarrel* barrelToSet)
+{
+	tankBarrel = barrelToSet;
+}
+
+void UTankAimingComponent::SetTankReference(UStaticMeshComponent * turretToSet)
+{
+	tankTurret = turretToSet;
 	
 }
 
 
-void UTankAimingComponent::SetBarrelReference(UStaticMeshComponent* barrelToSet)
-{
 
-	tankBarrel = barrelToSet;
-}
-
-// Called every frame
-void UTankAimingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
-}
-
-
-void UTankAimingComponent::aimAt(FVector worldSpaceAim)
+void UTankAimingComponent::aimAt(FVector worldSpaceAim, float launchSpeed)
 {
 	auto barrelLocation = tankBarrel->GetComponentLocation();
-	auto tankName = GetOwner()->GetName();
-	UE_LOG(LogTemp, Warning, TEXT("%s is aiming at location: %s, from location %s"), *tankName, *worldSpaceAim.ToString(), *barrelLocation.ToString());
+	FVector outVelocity;
+	FVector startLocation = tankBarrel->GetSocketLocation(FName("Projectile"));
+	
+	if (!tankBarrel) { return; }
+	//UE_LOG(LogTemp, Warning, TEXT("Firing at speed: %f"), launchSpeed);
+	
+	if (UGameplayStatics::SuggestProjectileVelocity(this, outVelocity, startLocation, worldSpaceAim, launchSpeed, false, 0.0f, 0.0f, ESuggestProjVelocityTraceOption::TraceFullPath, FCollisionResponseParams::DefaultResponseParam, TArray<AActor*>(), true))
+	{
+		auto AimDirection = outVelocity.GetSafeNormal();
+		auto tankName = GetOwner()->GetName();
+		//UE_LOG(LogTemp, Warning, TEXT("%s is Aiming At: %s"),*tankName, *AimDirection.ToString());
+		MoveBarrel(AimDirection);
+
+		
+	}
+	
+}
+
+void UTankAimingComponent::MoveBarrel(FVector AimDirection)
+{
+
+	//move the barrel.
+	//rotation, pointing towards the end location
+
+	//		UKismetMathLibrary::FindLookAtRotation(tankTurret->GetComponentLocation, AimDirection);
+
+	auto barrelRotator = tankBarrel->GetForwardVector().Rotation();
+	auto aimAsRotator = AimDirection.Rotation();
+	auto deltaRotator = aimAsRotator - barrelRotator;
+
+	tankBarrel->Elevate(5);
+
 }

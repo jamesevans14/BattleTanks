@@ -27,4 +27,6 @@ private:
 private:
 
 	ATank * PlayerTank = nullptr; 
+
+	ATank* tank_m = nullptr;
 };
