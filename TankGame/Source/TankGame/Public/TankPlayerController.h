@@ -21,7 +21,32 @@ public:
 
 	virtual void BeginPlay() override; //virtual here doesnt do anything, because BeginPlay first defined in AActor
 
+	virtual void Tick(float DeltaTime) override;
+
+	//move the tank barrel so a shot would hit where reticle is aiming
+	void AimTowardsCrosshair();
+
+	
+
 private:
-	APawn * tank_m = nullptr;
+	ATank * tank_m = nullptr;
+	UPROPERTY(EditAnywhere)
+	float crosshairX_m = 0.5f;
+
+	UPROPERTY(EditAnywhere)
+	float crosshairY_m = 0.3333f;
+
+	UPROPERTY(EditAnywhere)
+	float lineTraceRange = 1000000.f;
+
+
+	bool GetSightRayHitLocation(FVector& OutHitLocation) const;
+
+	bool GetLookDirection(FVector2D screenLocation, FVector &lookDirection) const;
+
+	bool GetLookVectorHitLocation(FVector lookDirection, FVector& HitLocation) const;
+
+
+
 
 };
