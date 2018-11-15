@@ -38,20 +38,38 @@ void UTankAimingComponent::SetTankReference(UStaticMeshComponent * turretToSet)
 void UTankAimingComponent::aimAt(FVector worldSpaceAim, float launchSpeed)
 {
 	auto barrelLocation = tankBarrel->GetComponentLocation();
-	FVector outVelocity;
+	FVector outVelocity = FVector(0);
 	FVector startLocation = tankBarrel->GetSocketLocation(FName("Projectile"));
 	
 	if (!tankBarrel) { return; }
 	//UE_LOG(LogTemp, Warning, TEXT("Firing at speed: %f"), launchSpeed);
 	
-	if (UGameplayStatics::SuggestProjectileVelocity(this, outVelocity, startLocation, worldSpaceAim, launchSpeed, false, 0.0f, 0.0f, ESuggestProjVelocityTraceOption::TraceFullPath, FCollisionResponseParams::DefaultResponseParam, TArray<AActor*>(), true))
+	if (UGameplayStatics::SuggestProjectileVelocity(
+		this,
+		outVelocity,
+		startLocation,
+		worldSpaceAim,
+		launchSpeed,
+		false,
+		0,
+		0,
+		ESuggestProjVelocityTraceOption::DoNotTrace,
+		FCollisionResponseParams::DefaultResponseParam,
+		TArray<AActor*>(),
+		false)
+		)
 	{
 		auto AimDirection = outVelocity.GetSafeNormal();
 		auto tankName = GetOwner()->GetName();
-		//UE_LOG(LogTemp, Warning, TEXT("%s is Aiming At: %s"),*tankName, *AimDirection.ToString());
-		MoveBarrel(AimDirection);
-
-		
+		auto time = GetWorld()->GetTimeSeconds();
+		UE_LOG(LogTemp, Warning, TEXT("%f : %s is Aiming at location %s"), time,*tankName, *AimDirection.ToString());
+		MoveBarrel(AimDirection);		
+	}
+	else
+	{
+		auto tankName = GetOwner()->GetName();
+		auto time = GetWorld()->GetTimeSeconds();
+		UE_LOG(LogTemp, Warning, TEXT("%f : %s has no aim solution found"),time, *tankName);
 	}
 	
 }
@@ -68,6 +86,6 @@ void UTankAimingComponent::MoveBarrel(FVector AimDirection)
 	auto aimAsRotator = AimDirection.Rotation();
 	auto deltaRotator = aimAsRotator - barrelRotator;
 
-	tankBarrel->Elevate(5);
+	tankBarrel->Elevate(deltaRotator.Pitch);
 
 }
