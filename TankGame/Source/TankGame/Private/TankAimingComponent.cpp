@@ -5,6 +5,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "TankBarrel.h"
+#include "TankTurret.h"
 #include "GameFramework/Actor.h"
 
 
@@ -27,7 +28,7 @@ void UTankAimingComponent::SetBarrelReference(UTankBarrel* barrelToSet)
 	tankBarrel = barrelToSet;
 }
 
-void UTankAimingComponent::SetTankReference(UStaticMeshComponent * turretToSet)
+void UTankAimingComponent::SetTurretReference(UTankTurret * turretToSet)
 {
 	tankTurret = turretToSet;
 	
@@ -62,19 +63,19 @@ void UTankAimingComponent::aimAt(FVector worldSpaceAim, float launchSpeed)
 		auto AimDirection = outVelocity.GetSafeNormal();
 		auto tankName = GetOwner()->GetName();
 		auto time = GetWorld()->GetTimeSeconds();
-		UE_LOG(LogTemp, Warning, TEXT("%f : %s is Aiming at location %s"), time,*tankName, *AimDirection.ToString());
-		MoveBarrel(AimDirection);		
+		//UE_LOG(LogTemp, Warning, TEXT("%f : %s is Aiming at location %s"), time,*tankName, *AimDirection.ToString());
+		AimTank(AimDirection);
 	}
-	else
-	{
-		auto tankName = GetOwner()->GetName();
-		auto time = GetWorld()->GetTimeSeconds();
-		UE_LOG(LogTemp, Warning, TEXT("%f : %s has no aim solution found"),time, *tankName);
-	}
+	//else
+	//{
+	//	auto tankName = GetOwner()->GetName();
+	//	auto time = GetWorld()->GetTimeSeconds();
+	//	//UE_LOG(LogTemp, Warning, TEXT("%f : %s has no aim solution found"),time, *tankName);
+	//}
 	
 }
 
-void UTankAimingComponent::MoveBarrel(FVector AimDirection)
+void UTankAimingComponent::AimTank(FVector AimDirection)
 {
 
 	//move the barrel.
@@ -88,4 +89,13 @@ void UTankAimingComponent::MoveBarrel(FVector AimDirection)
 
 	tankBarrel->Elevate(deltaRotator.Pitch);
 
+	if (FMath::Abs(deltaRotator.Yaw) < 180)
+	{
+		tankTurret->Rotate(deltaRotator.Yaw);
+	}
+	else // Avoid going the long-way round
+	{
+		tankTurret->Rotate(-deltaRotator.Yaw);
+	}
+	
 }
